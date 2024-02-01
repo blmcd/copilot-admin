@@ -1,5 +1,6 @@
 <template>
   <div class="key-generator">
+    <h5>生成Key</h5>
     <div class="mb-3 form-floating">
       <input
         readonly
@@ -90,11 +91,14 @@
       {{ showMessage }}
     </div>
 
-    <div class="card cp" @click="copy(key)">
+    <div class="card cp">
       <div class="card-header">Generated Key</div>
       <div class="wb" style="padding: 0.8rem">
         {{ key }}
       </div>
+      <button v-if="key" class="btn btn-primary" @click="copy(key)">
+        复制
+      </button>
     </div>
 
     <div class="card cp">
@@ -111,9 +115,26 @@
             />
           </div>
         </li>
-        <li class="list-group-item" @click="copy(decryptKeyData)">
-          <div class="wb">
+        <li class="list-group-item">
+          <div class="wb" style="margin-bottom: 0.4rem">
             {{ decryptKeyData }}
+          </div>
+          <div>
+            <button
+              v-if="decryptKeyData"
+              class="btn btn-primary"
+              @click="copy(decryptKeyData)"
+            >
+              复制
+            </button>
+            <button
+              class="btn btn-danger"
+              @click="addBlackList"
+              v-if="decryptKeyData"
+              style="float: right"
+            >
+              添加至黑名单
+            </button>
           </div>
         </li>
         <li class="list-group-item">
@@ -128,7 +149,8 @@
 let count = 0;
 import CryptoJS from "crypto-js";
 import { v4 as uuidv4 } from "uuid";
-
+import axios from "axios";
+import { generateDateFromMidnight } from "@/utils.js/time";
 export default {
   data() {
     return {
@@ -139,7 +161,6 @@ export default {
       githubKey: "",
       offline: false,
       key: "",
-      decryptedKey: "",
       customKey: "",
       githubKeyRequired: false,
       showMessage: "",
@@ -167,25 +188,17 @@ export default {
       });
 
       this.formJson = this.getFormJson();
-      //   setTimeout(() => {
-      //     console.log("设置uuid为空");
-      //     this.uuid = "";
-      //   }, 3000);
 
       this.customKey = this.key;
-      //   this.isKeyExpired = this.isKeyExpired(this.key);
     },
     encrypt(message, secretKey) {
       return CryptoJS.AES.encrypt(message, secretKey).toString();
     },
     generateKey({ uuid, days, hours, minutes, githubKey, offline }) {
-      const expireDate = new Date();
-      expireDate.setDate(expireDate.getDate() + days);
-      expireDate.setHours(expireDate.getHours() + hours);
-      expireDate.setMinutes(expireDate.getMinutes() + minutes);
+      const expireDate = generateDateFromMidnight(days, hours, minutes);
       const data = JSON.stringify({
         uuid: uuid,
-        expires: expireDate.toISOString(),
+        expires: expireDate,
         githubKey,
         offline,
       });
@@ -198,7 +211,6 @@ export default {
     },
     decryptKey(ciphertext, secretKey = "WTX") {
       const originCiphertext = ciphertext.slice(4, -4);
-      //   console.log("originCiphertext", originCiphertext);
       let bytes = CryptoJS.AES.decrypt(originCiphertext, secretKey);
       return bytes.toString(CryptoJS.enc.Utf8);
     },
@@ -208,10 +220,7 @@ export default {
       navigator.clipboard
         .writeText(str.trim())
         .then(() => {
-          this.showMessage = "复制成功";
-          setTimeout(() => {
-            this.showMessage = "";
-          }, 2000);
+          this.$notify("复制成功");
         })
         .catch((err) => {
           console.error("Could not copy text: ", err);
@@ -231,6 +240,24 @@ export default {
         offline: this.offline,
       });
     },
+    async addBlackList() {
+      try {
+        const { uuid, expires } = JSON.parse(this.decryptKeyData);
+
+        const res = await axios.post(
+          "https://www.zyqj.online/api/addBlackList?key=zyqj",
+          { uuid, expires },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        this.$notify(res.data);
+      } catch (error) {
+        console.log(error);
+      }
+    },
   },
   computed: {
     isKeyExpired() {
@@ -238,7 +265,6 @@ export default {
       try {
         const user = JSON.parse(this.decryptKeyData);
         const expires = new Date(user.expires);
-        // console.log("this.decryptedKey.expires", this.decryptedKey.expires);
         return now > expires;
       } catch (error) {}
       return true;
@@ -247,10 +273,8 @@ export default {
       return this.decryptKey(this.customKey);
     },
     isFormChanged() {
-      console.log("isFormChanged computed");
       const currentForm = JSON.parse(this.getFormJson());
       const lastFormJSON = this.formJson;
-      console.log({ currentForm, lastForm: lastFormJSON }, count);
       count++;
       return JSON.stringify(currentForm) !== lastFormJSON;
     },
