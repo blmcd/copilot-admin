@@ -128,24 +128,7 @@
 let count = 0;
 import CryptoJS from "crypto-js";
 import { v4 as uuidv4 } from "uuid";
-const clipboard = {
-  writeText: (text) => {
-    return new Promise((resolve, reject) => {
-      try {
-        const input = document.createElement("input");
-        input.style.display = "none";
-        input.value = text;
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand("copy");
-        document.body.removeChild(input);
-        resolve();
-      } catch (error) {
-        reject();
-      }
-    });
-  },
-};
+
 export default {
   data() {
     return {
@@ -222,7 +205,7 @@ export default {
     copy(str) {
       //   alert("copy");
       // 复制文本
-      clipboard
+      navigator.clipboard
         .writeText(str.trim())
         .then(() => {
           this.showMessage = "复制成功";
