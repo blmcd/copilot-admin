@@ -1,8 +1,13 @@
 <template>
   <div id="app">
     <div id="container">
-      <h1>copilot-admin</h1>
-      <GenerateKey />
+      <template v-if="auth">
+        <h1>copilot-admin</h1>
+        <GenerateKey />
+      </template>
+      <template v-else>
+        <h1>Ops!</h1>
+      </template>
     </div>
     <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
   </div>
@@ -15,6 +20,22 @@ export default {
   name: "App",
   components: {
     GenerateKey,
+  },
+  data() {
+    return {
+      auth: false,
+    };
+  },
+  methods: {
+  },
+  created() {
+    const rightPwd = "18380880977";
+    var path = window.location.pathname; // 这将返回"/18380880977"
+    var parts = path.split("/"); // 这将把路径分割成多个部分
+    const validateWord = parts[1];
+    if (validateWord == rightPwd) {
+      this.auth = true;
+    }
   },
 };
 </script>
