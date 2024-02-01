@@ -2,9 +2,10 @@
   <div class="key-generator">
     <div class="mb-3 form-floating">
       <input
+        readonly
         placeholder="a placeholder"
         type="text"
-        class="form-control"
+        class="form-control form-control-plaintext"
         id="uuid"
         v-model="uuid"
       />
@@ -69,7 +70,25 @@
       </div>
     </div>
 
-    <button class="btn btn-primary" @click="generate">Generate Key</button>
+    <button
+      class="btn"
+      :class="{
+        'btn-warning': isFormChanged,
+        'btn-primary': !isFormChanged,
+      }"
+      @click="generate"
+    >
+      Generate Key
+    </button>
+
+    <div
+      class="alert alert-primary"
+      role="alert"
+      v-show="showMessage"
+      style="margin: 1.4rem 0"
+    >
+      {{ showMessage }}
+    </div>
 
     <div class="card cp" @click="copy(key)">
       <div class="card-header">Generated Key</div>
@@ -78,7 +97,7 @@
       </div>
     </div>
 
-    <div class="card cp" @click="copy(decryptKeyData)">
+    <div class="card cp">
       <div class="card-header">Decrypted Key</div>
       <ul class="list-group list-group-flush">
         <li class="list-group-item">
@@ -92,7 +111,7 @@
             />
           </div>
         </li>
-        <li class="list-group-item">
+        <li class="list-group-item" @click="copy(decryptKeyData)">
           <div class="wb">
             {{ decryptKeyData }}
           </div>
@@ -106,14 +125,32 @@
 </template>
 
 <script>
+let count = 0;
 import CryptoJS from "crypto-js";
 import { v4 as uuidv4 } from "uuid";
-
+const clipboard = {
+  writeText: (text) => {
+    return new Promise((resolve, reject) => {
+      try {
+        const input = document.createElement("input");
+        input.style.display = "none";
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        document.body.removeChild(input);
+        resolve();
+      } catch (error) {
+        reject();
+      }
+    });
+  },
+};
 export default {
   data() {
     return {
-      uuid: uuidv4(),
-      days: 0,
+      uuid: "",
+      days: 25,
       hours: 0,
       minutes: 0,
       githubKey: "",
@@ -122,6 +159,8 @@ export default {
       decryptedKey: "",
       customKey: "",
       githubKeyRequired: false,
+      showMessage: "",
+      formJson: "{}",
     };
   },
   methods: {
@@ -132,6 +171,9 @@ export default {
           return;
         }
       }
+
+      this.uuid = uuidv4();
+
       this.key = this.generateKey({
         uuid: this.uuid,
         days: this.days,
@@ -140,6 +182,13 @@ export default {
         githubKey: this.githubKey,
         offline: this.offline,
       });
+
+      this.formJson = this.getFormJson();
+      //   setTimeout(() => {
+      //     console.log("设置uuid为空");
+      //     this.uuid = "";
+      //   }, 3000);
+
       this.customKey = this.key;
       //   this.isKeyExpired = this.isKeyExpired(this.key);
     },
@@ -166,33 +215,61 @@ export default {
     },
     decryptKey(ciphertext, secretKey = "WTX") {
       const originCiphertext = ciphertext.slice(4, -4);
-      console.log("originCiphertext", originCiphertext);
+      //   console.log("originCiphertext", originCiphertext);
       let bytes = CryptoJS.AES.decrypt(originCiphertext, secretKey);
       return bytes.toString(CryptoJS.enc.Utf8);
     },
     copy(str) {
+      //   alert("copy");
       // 复制文本
-      navigator.clipboard
+      clipboard
         .writeText(str.trim())
-        .then(() => {})
+        .then(() => {
+          this.showMessage = "复制成功";
+          setTimeout(() => {
+            this.showMessage = "";
+          }, 2000);
+        })
         .catch((err) => {
           console.error("Could not copy text: ", err);
+          this.showMessage = "复制失败";
+          setTimeout(() => {
+            this.showMessage = "";
+          }, 2000);
         });
+    },
+    getFormJson() {
+      return JSON.stringify({
+        uuid: this.uuid,
+        days: this.days,
+        hours: this.hours,
+        minutes: this.minutes,
+        githubKey: this.githubKey,
+        offline: this.offline,
+      });
     },
   },
   computed: {
     isKeyExpired() {
       const now = new Date();
       try {
-        const user = JSON.parse(this.decryptedKey);
+        const user = JSON.parse(this.decryptKeyData);
         const expires = new Date(user.expires);
-        console.log("this.decryptedKey.expires", this.decryptedKey.expires);
+        // console.log("this.decryptedKey.expires", this.decryptedKey.expires);
         return now > expires;
       } catch (error) {}
       return true;
     },
     decryptKeyData() {
       return this.decryptKey(this.customKey);
+    },
+    isFormChanged() {
+      console.log("isFormChanged computed");
+      const currentForm = JSON.parse(this.getFormJson());
+      const lastFormJSON = this.formJson;
+      console.log({ currentForm, lastForm: lastFormJSON }, count);
+      count++;
+      return JSON.stringify(currentForm) !== lastFormJSON;
     },
   },
 };
