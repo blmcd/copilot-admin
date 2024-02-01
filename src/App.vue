@@ -1,18 +1,20 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js App" />
-    <h1>copilot-admin!</h1>
+    <div id="container">
+      <h1>copilot-admin</h1>
+      <GenerateKey />
+    </div>
+    <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
   </div>
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld.vue";
+import GenerateKey from "./components/GenerateKey.vue";
 
 export default {
   name: "App",
   components: {
-    HelloWorld,
+    GenerateKey,
   },
 };
 </script>
@@ -22,8 +24,12 @@ export default {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+}
+#container {
+  padding: 1.4rem;
+}
+.wb {
+  word-wrap: break-word;
 }
 </style>
