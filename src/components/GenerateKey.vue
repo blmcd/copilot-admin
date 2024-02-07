@@ -1,104 +1,117 @@
 <template>
   <div class="key-generator">
     <h5>生成Key</h5>
-    <div class="mb-3 form-floating">
-      <input
-        readonly
-        placeholder="a placeholder"
-        type="text"
-        class="form-control form-control-plaintext"
-        id="uuid"
-        v-model="uuid"
-      />
+    <div class="table-responsive-sm">
+      <table class="table" style="table-layout: fixed; word-break: break-all">
+        <thead>
+          <tr>
+            <th scope="col">id</th>
+            <th style="min-width: 12rem" scope="col">githubKey</th>
+            <th scope="col">占用</th>
+            <th scope="col">描述</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="k in githubKeys"
+            :class="{ 'table-primary': k.githubKey == selectedKey }"
+          >
+            <th scope="row">
+              {{ k.id }}
 
-      <label for="uuid" class="form-label">UUID</label>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="selectKey"
+                  id="selectKey"
+                  :value="k.githubKey"
+                  v-model="selectedKey"
+                />
+              </div>
+            </th>
+            <td style="min-width: 12rem">{{ k.githubKey }}</td>
+            <td v-if="!loading">{{ k.currentBindings + " / " + k.limits }}</td>
+            <td v-else>
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </td>
+            <td>{{ k.description }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-    <div class="mb-3 form-floating">
-      <input
-        placeholder="a placeholder"
-        type="number"
-        class="form-control"
-        id="days"
-        v-model="days"
-      />
-      <label for="days" class="form-label">Days</label>
-    </div>
-    <div class="mb-3 form-floating">
-      <input
-        placeholder="a placeholder"
-        type="number"
-        class="form-control"
-        id="hours"
-        v-model="hours"
-      />
-      <label for="hours" class="form-label">Hours</label>
-    </div>
-    <div class="mb-3 form-floating">
-      <input
-        placeholder="a placeholder"
-        type="number"
-        class="form-control"
-        id="minutes"
-        v-model="minutes"
-      />
-      <label for="minutes" class="form-label">Minutes</label>
-    </div>
-
-    <div class="mb-3">
-      <div class="form-check">
+    <div class="add-info" v-show="selectedKey">
+      <div class="mb-3 form-floating">
         <input
-          class="form-check-input"
-          type="checkbox"
-          value=""
-          id="flexCheckDefault"
-          v-model="offline"
+          readonly
+          placeholder="a placeholder"
+          type="text"
+          class="form-control form-control-plaintext"
+          id="uuid"
+          v-model="uuid"
         />
-        <label class="form-check-label" for="flexCheckDefault"> Offline </label>
+
+        <label for="uuid" class="form-label">UUID</label>
       </div>
-    </div>
-
-    <div class="mb-3 form-floating" v-if="offline">
-      <input
-        placeholder=""
-        type="text"
-        class="form-control"
-        id="githubKey"
-        v-model="githubKey"
-      />
-      <label for="githubKey" class="form-label">Github Key</label>
-      <div class="form-text" v-if="githubKeyRequired" style="color: red">
-        离线秘钥必须要githubKey
+      <div class="mb-3 form-floating">
+        <input
+          placeholder="a placeholder"
+          type="number"
+          class="form-control"
+          id="days"
+          v-model="days"
+        />
+        <label for="days" class="form-label">Days</label>
       </div>
-    </div>
-
-    <button
-      class="btn"
-      :class="{
-        'btn-warning': isFormChanged,
-        'btn-primary': !isFormChanged,
-      }"
-      @click="generate"
-    >
-      Generate Key
-    </button>
-
-    <div
-      class="alert alert-primary"
-      role="alert"
-      v-show="showMessage"
-      style="margin: 1.4rem 0"
-    >
-      {{ showMessage }}
-    </div>
-
-    <div class="card cp">
-      <div class="card-header">Generated Key</div>
-      <div class="wb" style="padding: 0.8rem">
-        {{ key }}
+      <div class="mb-3 form-floating">
+        <input
+          placeholder="a placeholder"
+          type="number"
+          class="form-control"
+          id="hours"
+          v-model="hours"
+        />
+        <label for="hours" class="form-label">Hours</label>
       </div>
-      <button v-if="key" class="btn btn-primary" @click="copy(key)">
-        复制
+      <div class="mb-3 form-floating">
+        <input
+          placeholder="a placeholder"
+          type="number"
+          class="form-control"
+          id="minutes"
+          v-model="minutes"
+        />
+        <label for="minutes" class="form-label">Minutes</label>
+      </div>
+
+      <button
+        class="btn"
+        :class="{
+          'btn-warning': isFormChanged,
+          'btn-primary': !isFormChanged,
+        }"
+        @click="generate"
+      >
+        <div
+          v-show="loading"
+          class="spinner-border-sm spinner-border text-dark"
+          role="status"
+        >
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        Generate Key
       </button>
+      <div class="card cp">
+        <div class="card-header">Generated Key</div>
+        <div class="wb" style="padding: 0.8rem">
+          {{ key }}
+        </div>
+        <button v-if="key" class="btn btn-primary" @click="copy(key)">
+          复制
+        </button>
+      </div>
     </div>
 
     <div class="card cp">
@@ -129,11 +142,11 @@
             </button>
             <button
               class="btn btn-danger"
-              @click="addBlackList"
+              @click="deleteUser"
               v-if="decryptKeyData"
               style="float: right"
             >
-              添加至黑名单
+              删除用户
             </button>
           </div>
         </li>
@@ -159,48 +172,62 @@ export default {
       hours: 0,
       minutes: 0,
       githubKey: "",
-      offline: false,
       key: "",
       customKey: "",
       githubKeyRequired: false,
       showMessage: "",
       formJson: "{}",
+      githubKeys: [],
+      selectedKey: null,
+      loading: false,
+      userId: null,
     };
   },
+  created() {
+    this.getGithubKeys();
+  },
   methods: {
-    generate() {
-      if (this.offline) {
-        if (!this.githubKey.length) {
-          this.githubKeyRequired = true;
-          return;
-        }
-      }
-
+    async generate() {
       this.uuid = uuidv4();
-
-      this.key = this.generateKey({
+      this.loading = true;
+      this.key = await this.generateKey({
         uuid: this.uuid,
         days: this.days,
         hours: this.hours,
         minutes: this.minutes,
-        githubKey: this.githubKey,
-        offline: this.offline,
+        githubKey: this.selectedKey,
       });
 
       this.formJson = this.getFormJson();
 
       this.customKey = this.key;
+      await this.refreshGithubKeys();
+      this.loading = false;
     },
     encrypt(message, secretKey) {
       return CryptoJS.AES.encrypt(message, secretKey).toString();
     },
-    generateKey({ uuid, days, hours, minutes, githubKey, offline }) {
+    async generateKey({ uuid, days, hours, minutes, githubKey }) {
       const expireDate = generateDateFromMidnight(days, hours, minutes);
+
+      try {
+        const res = await this.addUser({
+          username: this.uuid,
+          githubKey: this.selectedKey,
+          expires: expireDate,
+        });
+        this.$notify(res.data.message);
+        this.userId = res.data.user.id;
+      } catch (error) {
+        console.log(error);
+        this.$notify("添加用户失败");
+      }
+
       const data = JSON.stringify({
+        id: this.userId,
         uuid: uuid,
         expires: expireDate,
         githubKey,
-        offline,
       });
 
       const secretKey = "WTX";
@@ -215,8 +242,6 @@ export default {
       return bytes.toString(CryptoJS.enc.Utf8);
     },
     copy(str) {
-      //   alert("copy");
-      // 复制文本
       navigator.clipboard
         .writeText(str.trim())
         .then(() => {
@@ -224,10 +249,7 @@ export default {
         })
         .catch((err) => {
           console.error("Could not copy text: ", err);
-          this.showMessage = "复制失败";
-          setTimeout(() => {
-            this.showMessage = "";
-          }, 2000);
+          this.$notify("复制失败");
         });
     },
     getFormJson() {
@@ -237,26 +259,61 @@ export default {
         hours: this.hours,
         minutes: this.minutes,
         githubKey: this.githubKey,
-        offline: this.offline,
       });
     },
-    async addBlackList() {
+    async deleteUser() {
       try {
-        const { uuid, expires } = JSON.parse(this.decryptKeyData);
+        const { id } = JSON.parse(this.decryptKeyData);
 
         const res = await axios.post(
-          "https://www.zyqj.online/api/addBlackList?key=zyqj",
-          { uuid, expires },
+          "https://www.zyqj.online/api/deleteUser?key=zyqj",
+          { id },
           {
             headers: {
               "Content-Type": "application/json",
             },
           }
         );
-        this.$notify(res.data);
+        this.$notify(res.data.message);
+        await this.refreshGithubKeys();
       } catch (error) {
         console.log(error);
       }
+    },
+    async getGithubKeys() {
+      try {
+        const res = await axios.get(
+          "https://www.zyqj.online/api/getGithubKeys?key=zyqj"
+        );
+        this.githubKeys = res.data;
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async addUser(user) {
+      return axios.post(
+        "https://www.zyqj.online/api/addAndBindUser?key=zyqj",
+        user,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    },
+    async refreshGithubKeys() {
+      this.loading = true;
+
+      try {
+        const res = await axios.get(
+          "https://www.zyqj.online/api/getGithubKeys?key=zyqj"
+        );
+        this.githubKeys = res.data;
+        this.$notify("刷新GithubKeys成功");
+      } catch (error) {
+        console.log(error);
+      }
+      this.loading = false;
     },
   },
   computed: {

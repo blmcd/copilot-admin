@@ -13,6 +13,16 @@
     </div>
     <div class="mb-3 form-floating">
       <input
+        placeholder="a placeholder"
+        type="number"
+        class="form-control"
+        id="limits"
+        v-model="limits"
+      />
+      <label for="limits" class="form-label">limits</label>
+    </div>
+    <div class="mb-3 form-floating">
+      <input
         placeholder=""
         type="text"
         class="form-control"
@@ -20,11 +30,21 @@
         v-model="githubKey"
       />
       <label for="githubKey" class="form-label">Github Key</label>
-      <!-- <div class="form-text" v-if="githubKeyRequired" style="color: red">
-        离线秘钥必须要githubKey
-      </div> -->
     </div>
-    <button @click="add(githubKey)" class="btn btn-primary">
+    <div class="mb-3 form-floating">
+      <input
+        placeholder=""
+        type="text"
+        class="form-control"
+        id="description"
+        v-model="description"
+      />
+      <label for="description" class="form-label">description</label>
+    </div>
+    <button
+      @click="add({ githubKey, limits, description })"
+      class="btn btn-primary"
+    >
       添加githubKey
     </button>
   </div>
@@ -37,16 +57,16 @@ export default {
     return {
       days: 25,
       githubKey: "",
+      limits: 0,
+      description: "",
     };
   },
   methods: {
-    async add(githubKey) {
-      const now = new Date();
-
+    async add({ githubKey, limits, description }) {
       const expires = generateDateFromMidnight(this.days);
       const res = await axios.post(
         "https://www.zyqj.online/api/addGithubKey?key=zyqj",
-        { githubKey, expires },
+        { githubKey, expires, limits, description },
         {
           headers: {
             "Content-Type": "application/json", // 或者其他您需要的类型

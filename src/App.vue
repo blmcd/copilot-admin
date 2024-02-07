@@ -12,9 +12,9 @@
             </li>
           </template>
         </ul>
-        <GenerateKey v-if="activeTab == 'GenerateKey'" />
-        <AddGithubKey v-if="activeTab == 'AddGithubKey'" />
-        <AddAnnouncement v-if="activeTab == 'AddAnnouncement'" />
+        <GenerateKey v-show="activeTab == 'GenerateKey'" />
+        <AddGithubKey v-show="activeTab == 'AddGithubKey'" />
+        <AddAnnouncement v-show="activeTab == 'AddAnnouncement'" />
       </template>
       <template v-else>
         <h1>Ops!</h1>
