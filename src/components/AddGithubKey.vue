@@ -73,7 +73,7 @@ export default {
           },
         }
       );
-      this.$notify(res.data);
+      this.$notify(res.data.message);
     },
   },
 };

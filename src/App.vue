@@ -12,9 +12,11 @@
             </li>
           </template>
         </ul>
-        <GenerateKey v-show="activeTab == 'GenerateKey'" />
-        <AddGithubKey v-show="activeTab == 'AddGithubKey'" />
+        <!-- <GenerateKey v-show="activeTab == 'GenerateKey'" /> -->
+        <!-- <AddGithubKey v-show="activeTab == 'AddGithubKey'" />
         <AddAnnouncement v-show="activeTab == 'AddAnnouncement'" />
+        <MigrateManage v-show="activeTab == 'MigrateManage'" /> -->
+        <component :is="activeTab" />
       </template>
       <template v-else>
         <h1>Ops!</h1>
@@ -44,21 +46,24 @@ import Vue from "vue";
 import GenerateKey from "./components/GenerateKey.vue";
 import AddGithubKey from "./components/AddGithubKey.vue";
 import AddAnnouncement from "@/components/AddAnnouncement";
+import MigrateManage from "./components/MigrateManage.vue";
 export default {
   name: "App",
   components: {
     GenerateKey,
     AddGithubKey,
     AddAnnouncement,
+    MigrateManage,
   },
   data() {
     return {
       auth: false,
-      activeTab: "GenerateKey",
+      activeTab: "MigrateManage",
       tabs: [
         { name: "GenerateKey" },
         { name: "AddGithubKey" },
         { name: "AddAnnouncement" },
+        { name: "MigrateManage" },
       ],
       showMessage: "",
     };

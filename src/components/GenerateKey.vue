@@ -1,6 +1,13 @@
 <template>
   <div class="key-generator">
-    <h5>生成Key</h5>
+    <h5>生成用户Key</h5>
+    <button
+      class="btn btn-primary"
+      @click="getGithubKeys"
+      style="margin-bottom: 1rem"
+    >
+      获取GithubKeys
+    </button>
     <div class="table-responsive-sm">
       <table class="table" style="table-layout: fixed; word-break: break-all">
         <thead>
@@ -31,7 +38,12 @@
               </div>
             </th>
             <td style="min-width: 12rem">{{ k.githubKey }}</td>
-            <td v-if="!loading">{{ k.currentBindings + " / " + k.limits }}</td>
+            <td v-if="!loading">
+              {{ k.currentBindings + " / " + k.limits }}<br />
+              <span style="font-size: small">预迁移后的占用:</span>
+              <br />
+              {{ k.expectedBindings + " / " + k.limits }}
+            </td>
             <td v-else>
               <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -165,6 +177,7 @@ import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import { generateDateFromMidnight } from "@/utils.js/time";
 export default {
+  // name: "GenerateKey",
   data() {
     return {
       uuid: "",
@@ -184,7 +197,7 @@ export default {
     };
   },
   created() {
-    this.getGithubKeys();
+    // this.getGithubKeys();
   },
   methods: {
     async generate() {
@@ -286,6 +299,7 @@ export default {
           "https://www.zyqj.online/api/getGithubKeys?key=zyqj"
         );
         this.githubKeys = res.data;
+        this.$notify("获取GithubKeys成功");
       } catch (error) {
         console.log(error);
       }
@@ -304,15 +318,7 @@ export default {
     async refreshGithubKeys() {
       this.loading = true;
 
-      try {
-        const res = await axios.get(
-          "https://www.zyqj.online/api/getGithubKeys?key=zyqj"
-        );
-        this.githubKeys = res.data;
-        this.$notify("刷新GithubKeys成功");
-      } catch (error) {
-        console.log(error);
-      }
+      await this.getGithubKeys();
       this.loading = false;
     },
   },
