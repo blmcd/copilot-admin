@@ -52,7 +52,7 @@
       <label for="tokenProxy" class="form-label">tokenProxy</label>
     </div>
     <button
-      @click="add({ githubKey, limits, description })"
+      @click="add({ githubKey, limits, description, tokenProxy })"
       class="btn btn-primary"
     >
       添加githubKey
