@@ -12,10 +12,11 @@
       <table class="table" style="table-layout: fixed; word-break: break-all">
         <thead>
           <tr>
-            <th scope="col">id</th>
+            <th style="width: 3rem" scope="col">id</th>
             <th style="min-width: 12rem" scope="col">githubKey</th>
-            <th scope="col">占用</th>
-            <th scope="col">描述</th>
+            <th style="min-width: 12rem" scope="col">tokenProxy</th>
+            <th style="width: 8rem" scope="col">占用</th>
+            <th style="width: 5rem" scope="col">描述</th>
           </tr>
         </thead>
         <tbody>
@@ -37,7 +38,12 @@
                 />
               </div>
             </th>
-            <td style="min-width: 12rem">{{ k.githubKey }}</td>
+            <td :title="k.tokenProxy">
+              {{ k.githubKey }}
+            </td>
+            <td :title="k.tokenProxy">
+              {{ k.tokenProxy }}
+            </td>
             <td v-if="!loading">
               {{ k.currentBindings + " / " + k.limits }}<br />
               <span style="font-size: small">预迁移后的占用:</span>
@@ -209,6 +215,7 @@ export default {
         hours: this.hours,
         minutes: this.minutes,
         githubKey: this.selectedKey,
+        tokenProxy: this.getTokenProxy(this.selectedKey),
       });
 
       this.formJson = this.getFormJson();
@@ -220,7 +227,7 @@ export default {
     encrypt(message, secretKey) {
       return CryptoJS.AES.encrypt(message, secretKey).toString();
     },
-    async generateKey({ uuid, days, hours, minutes, githubKey }) {
+    async generateKey({ uuid, days, hours, minutes, githubKey, tokenProxy }) {
       const expireDate = generateDateFromMidnight(days, hours, minutes);
 
       try {
@@ -241,6 +248,7 @@ export default {
         uuid: uuid,
         expires: expireDate,
         githubKey,
+        tokenProxy,
       });
 
       const secretKey = "WTX";
@@ -320,6 +328,9 @@ export default {
 
       await this.getGithubKeys();
       this.loading = false;
+    },
+    getTokenProxy(key) {
+      return this.githubKeys.find((k) => k.githubKey === key).tokenProxy;
     },
   },
   computed: {
