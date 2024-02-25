@@ -103,6 +103,16 @@
         />
         <label for="minutes" class="form-label">Minutes</label>
       </div>
+      <div class="form-check form-switch">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          role="switch"
+          id="using-tool"
+          v-model="tool"
+        />
+        <label class="form-check-label" for="using-tool">tool</label>
+      </div>
 
       <button
         class="btn"
@@ -200,6 +210,7 @@ export default {
       selectedKey: null,
       loading: false,
       userId: null,
+      tool: false,
     };
   },
   created() {
@@ -216,6 +227,7 @@ export default {
         minutes: this.minutes,
         githubKey: this.selectedKey,
         tokenProxy: this.getTokenProxy(this.selectedKey),
+        tool: this.tool,
       });
 
       this.formJson = this.getFormJson();
@@ -227,7 +239,15 @@ export default {
     encrypt(message, secretKey) {
       return CryptoJS.AES.encrypt(message, secretKey).toString();
     },
-    async generateKey({ uuid, days, hours, minutes, githubKey, tokenProxy }) {
+    async generateKey({
+      uuid,
+      days,
+      hours,
+      minutes,
+      githubKey,
+      tokenProxy,
+      tool,
+    }) {
       const expireDate = generateDateFromMidnight(days, hours, minutes);
 
       try {
@@ -235,6 +255,7 @@ export default {
           username: this.uuid,
           githubKey: this.selectedKey,
           expires: expireDate,
+          tool,
         });
         this.$notify(res.data.message);
         this.userId = res.data.user.id;
@@ -249,6 +270,7 @@ export default {
         expires: expireDate,
         githubKey,
         tokenProxy,
+        tool,
       });
 
       const secretKey = "WTX";
